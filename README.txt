@@ -1,6 +1,6 @@
 Scripts written to analyse the data taken at the A2 hall tagger in Mainz in July and August 2025.
 
-sixteenSiPMCoincidence.C is the most important script, and most of the other scripts use the outputs it produces.
+<sixteenSiPMCoincidence.C> is the most important script, and most of the other scripts use the outputs it produces.
 It looks for coincidence events, then produces histograms providing more information about the coincidences.
 The important one is the totalEventEnergy histogram, which is a sum of the energies of all the channels that were trigged in a coincidence.
 
