@@ -36,19 +36,35 @@
 #include <TLorentzVector.h>
 #include <Riostream.h>
 #include <TObjString.h>
+#include <TColor.h>
 
-void multiRunTaggerPositionEnergy(){
+#include "ePICStyle.C"
 
-  std::string fileNameList[5] = {"25-07-31_Tagger18_AllCh_MultipleRuns_totalEnergyHistos.root",
-                                  "25-08-01_Tagger26_AllCh_MultipleRuns_totalEnergyHistos.root",
-                                  "25-08-02_Tagger12_AllCh_MultipleRuns_totalEnergyHistos.root",
+void multiRunTaggerPositionEnergy()
+{
+  //gROOT->SetBatch(kTRUE);
+  gROOT->ProcessLine("SetePICStyle()");
+
+  // New Colour Scheme palette
+  std::vector<int> sixColourScheme = {
+    TColor::GetColor("#7021dd"),     // violet
+    TColor::GetColor("#964a8b"),     // grape
+    TColor::GetColor("#e42536"),     // red
+    TColor::GetColor("#f89c20"),     // yellow
+    TColor::GetColor("#5790fc"),     // blue
+    TColor::GetColor("#9c9ca1"),     // grey
+  };
+
+  std::string fileNameList[4] = {"25-08-01_Tagger26_AllCh_MultipleRuns_totalEnergyHistos.root",
                                   "25-08-02_Tagger18_AllCh_MultipleRuns_totalEnergyHistos.root",
+                                  "25-08-02_Tagger12_AllCh_MultipleRuns_totalEnergyHistos.root",
                                   "25-08-07_Tagger10_AllCh_MultipleRuns_totalEnergyHistos.root"
                                 };
-  std::string runNumberList[5] = {"Tagger18", "Tagger26", "Tagger12", "Tagger18", "Tagger10"};
-  int numberOfFiles = 5;
+  std::string runNumberList[4] = {"Tagger26","Tagger18", "Tagger12", "Tagger10"};
+  std::string runEnergiesList[4] = {"288.5-300 MeV", "410-425 MeV", "520-540 MeV", "545-563.5 MeV"};
+  int numberOfFiles = 4;
 
-  TH1D* totalEventEnergy[5];
+  TH1D* totalEventEnergy[4];
 
   std::string OutFileName = "outputHistos/TaggerPositionComparrison_totalEnergyHistos.root";
   TString OutFileNameT = OutFileName;
@@ -65,6 +81,7 @@ void multiRunTaggerPositionEnergy(){
     totalEventEnergy[fileNumber] = (TH1D*) InFile->Get("totalEventEnergySum");
 
     totalEventEnergy[fileNumber]->SetXTitle("ADC Energy");
+    totalEventEnergy[fileNumber]->SetYTitle("Normalised Counts");
   }
 
   TFile OutFile(OutFileNameT,"recreate");
@@ -75,8 +92,11 @@ void multiRunTaggerPositionEnergy(){
   legend->SetHeader("Run Number", "C");
 
 
-  for (int fileNumber= 0; fileNumber< numberOfFiles; fileNumber++) {
-    legend->AddEntry(totalEventEnergy[fileNumber], ("Run " + runNumberList[fileNumber]).c_str(), "l");
+  for (int fileNumber= 0; fileNumber< numberOfFiles; fileNumber++) 
+  {
+    std::string histoTitle = runNumberList[fileNumber] + ": " + runEnergiesList[fileNumber];
+    TString histoTitleT = histoTitle;
+    legend->AddEntry(totalEventEnergy[fileNumber], histoTitleT, "l");
   }
 
   for (int fileNumber= 0; fileNumber< numberOfFiles; fileNumber++){
@@ -93,23 +113,46 @@ void multiRunTaggerPositionEnergy(){
     totalEventEnergy[fileNumber]->SetLineWidth(2);
     totalEventEnergy[fileNumber]->SetStats(kFALSE); // Disable stats box
     
-    if (fileNumber == 0) totalEventEnergy[fileNumber]->SetLineColor(kBlue); 
-    else if (fileNumber == 1) totalEventEnergy[fileNumber]->SetLineColor(kGreen); 
-    else if (fileNumber == 2) totalEventEnergy[fileNumber]->SetLineColor(kRed); 
-    else if (fileNumber == 3) totalEventEnergy[fileNumber]->SetLineColor(kCyan);
-    else totalEventEnergy[fileNumber]->SetLineColor(kOrange); 
-
-    totalEventEnergy[fileNumber]->SetDrawOption("P"); // Set draw option to "PE" for points with error bars
+    if (fileNumber == 0)
+    {
+      totalEventEnergy[fileNumber]->SetLineColor(sixColourScheme[0]); 
+      totalEventEnergy[fileNumber]->SetMarkerColor(sixColourScheme[0]); 
+      totalEventEnergy[fileNumber]->SetMarkerStyle(20);
+    }
+    else if (fileNumber == 1)
+    {
+      totalEventEnergy[fileNumber]->SetLineColor(sixColourScheme[1]); 
+      totalEventEnergy[fileNumber]->SetMarkerColor(sixColourScheme[1]);  
+      totalEventEnergy[fileNumber]->SetMarkerStyle(22);
+    }
+    else if (fileNumber == 2) 
+    {
+      totalEventEnergy[fileNumber]->SetLineColor(sixColourScheme[2]);
+      totalEventEnergy[fileNumber]->SetMarkerColor(sixColourScheme[2]);  
+      totalEventEnergy[fileNumber]->SetMarkerStyle(23);
+    }
+    else if (fileNumber == 3) 
+    {
+      totalEventEnergy[fileNumber]->SetLineColor(sixColourScheme[3]); 
+      totalEventEnergy[fileNumber]->SetMarkerColor(sixColourScheme[3]);  
+      totalEventEnergy[fileNumber]->SetMarkerStyle(20);
+    }
+    else 
+    {
+    }
+    //totalEventEnergy[fileNumber]->SetDrawOption("P"); // Set draw option to "PE" for points with error bars
 
     if (fileNumber== 0)
-      totalEventEnergy[fileNumber]->Draw("");
+      totalEventEnergy[fileNumber]->Draw("PE");
     else
-      totalEventEnergy[fileNumber]->Draw("SAME");
+      totalEventEnergy[fileNumber]->Draw("PE SAME");
 
   }
 
   c1->Update();
   legend->Draw();
+
+  c1->Draw();
 
   c1->Write();
   OutFile.Close(); 

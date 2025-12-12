@@ -49,6 +49,7 @@ void taggerPositionEnergy(){
   int numberOfFiles = 16;
 
   TH1D* totalEventEnergy[16];
+  TH1D* totalEventEnergyN[16];
 
   std::string OutFileName = "outputHistos/TaggerPositionComparrison_totalEnergyHistos.root";
   TString OutFileNameT = OutFileName;
@@ -63,8 +64,11 @@ void taggerPositionEnergy(){
     //InFile->ls(); 
 
     totalEventEnergy[fileNumber] = (TH1D*) InFile->Get("EnergyHistos/totalEventEnergy");
+    totalEventEnergyN[fileNumber] = (TH1D*) InFile->Get("EnergyHistos/totalEventEnergyN");
 
     totalEventEnergy[fileNumber]->SetXTitle("ADC Energy");
+    totalEventEnergyN[fileNumber]->SetXTitle("ADC Energy");
+
 
   }
 
@@ -111,7 +115,49 @@ void taggerPositionEnergy(){
   c1->Update();
   legend->Draw();
 
+  TCanvas *c2 = new TCanvas("c2", "Total Event Energy Normalised", 800, 600);
+
+  TLegend* legend2 = new TLegend(0.7, 0.7, 0.9, 0.9);
+  legend2->SetHeader("Run Number", "C");
+
+
+  for (int fileNumber= 0; fileNumber< numberOfFiles; fileNumber++) {
+    legend2->AddEntry(totalEventEnergyN[fileNumber], ("Run " + runNumberList[fileNumber]).c_str(), "l");
+  }
+
+  for (int fileNumber= 0; fileNumber< numberOfFiles; fileNumber++){
+    
+    std::string histoName = "totalEventEnergyN_run" + runNumberList[fileNumber];
+    TString histoNameT = histoName;
+
+    int binMax = totalEventEnergyN[fileNumber]->GetMaximumBin();
+    double value = totalEventEnergyN[fileNumber]->GetBinContent(binMax);
+    totalEventEnergyN[fileNumber]->Scale(1.0/value); // Normalize the histogram
+
+    totalEventEnergyN[fileNumber]->SetName(histoNameT);
+    totalEventEnergyN[fileNumber]->SetLineWidth(2);
+    totalEventEnergyN[fileNumber]->SetStats(kFALSE); // Disable stats box
+    
+    if (fileNumber <= 3) totalEventEnergyN[fileNumber]->SetLineColor(kBlue + fileNumber); 
+    else if (fileNumber > 3 && fileNumber <=7) totalEventEnergyN[fileNumber]->SetLineColor(kGreen + (fileNumber - 4)); 
+    else if (fileNumber > 7 && fileNumber <=9) totalEventEnergyN[fileNumber]->SetLineColor(kRed + (fileNumber - 8)); 
+    else if (fileNumber > 9 && fileNumber <= 12) totalEventEnergyN[fileNumber]->SetLineColor(kCyan + (fileNumber - 10));
+    else totalEventEnergyN[fileNumber]->SetLineColor(kOrange + (fileNumber - 10)); 
+
+    totalEventEnergyN[fileNumber]->SetDrawOption("P"); // Set draw option to "PE" for points with error bars
+
+    if (fileNumber== 0)
+      totalEventEnergyN[fileNumber]->Draw("");
+    else
+      totalEventEnergyN[fileNumber]->Draw("SAME");
+
+  }
+
+  c2->Update();
+  legend2->Draw();
+
   c1->Write();
+  c2->Write();
   OutFile.Close(); 
 
 } 
